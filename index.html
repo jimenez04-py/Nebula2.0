@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nebula Vapes | Beyond The Flavor</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- Configuración Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        nebula: {
+                            dark: '#0a0a0a',
+                            navy: '#0b2545',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        display: ['Orbitron', 'sans-serif'],
+                    },
+                    backgroundImage: {
+                        'cosmic': "url('https://images.unsplash.com/photo-1534796636912-3b95b3ab5980?ixlib=rb-4.0.3&auto=format&fit=crop&w=2072&q=80')",
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #0a0a0a; color: #e5e7eb; overflow-x: hidden; }
+        .text-glow { text-shadow: 0 0 10px rgba(161, 124, 30, 0.35), 0 0 18px rgba(138, 106, 22, 0.25); }
+        .glass-panel { background: rgba(12, 12, 12, 0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glass-card-hover:hover { background: rgba(11, 37, 69, 0.6); border-color: rgba(59, 130, 246, 0.5); box-shadow: 0 0 30px rgba(11, 37, 69, 0.4); }
+        .btn-neon { background: linear-gradient(90deg, #0b2545, #1e3a8a); transition: all 0.3s ease; }
+        .btn-neon:hover { box-shadow: 0 0 22px rgba(11, 37, 69, 0.5); transform: translateY(-2px); }
+        /* Dorado metálico oscuro para títulos especiales */
+        .metallic-dark {
+            background: linear-gradient(90deg, #564415, #8a6b1d, #c3a456, #8a6b1d, #564415);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 6px rgba(86,68,21,0.25);
+        }
+        
+        /* Animaciones */
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0px); } }
+        .animate-float { animation: float 5s ease-in-out infinite; }
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Scrollbar oculto para el carrusel */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+        #starsCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; opacity: 0.6; }
+    </style>
+</head>
+<body class="antialiased relative">
+
+    <canvas id="starsCanvas"></canvas>
+
+    <!-- Age Gate -->
+    <div id="ageModal" class="fixed inset-0 z-[100] bg-black/95 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-[#121212] border border-blue-900/30 p-8 rounded-2xl max-w-md w-full text-center shadow-[0_0_40px_rgba(11,37,69,0.25)]" data-aos="zoom-in">
+            <div class="text-5xl text-blue-400 mb-6"><i class="fa-solid fa-user-astronaut"></i></div>
+            <h2 class="text-2xl font-display font-bold text-white mb-2">Protocolo de Seguridad</h2>
+            <p class="text-gray-400 mb-8 text-sm">Debes tener más de 18 años para entrar al sistema Nebula.</p>
+            <button onclick="closeAgeModal()" class="w-full btn-neon py-3 rounded-lg text-white font-bold hover:brightness-110 transition">SOY MAYOR DE 18 AÑOS</button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-[#1a1a1a] text-white px-6 py-4 rounded-xl shadow-[0_0_16px_rgba(0,0,0,0.35)] transform translate-y-40 transition-transform duration-300 z-[90] flex items-center gap-4 border-l-4 border-blue-900">
+        <i class="fa-solid fa-check-circle text-blue-400 text-2xl"></i>
+        <div>
+            <h4 class="font-bold text-sm font-display">¡Producto añadido!</h4>
+            <p id="toast-message" class="text-xs text-gray-600">Tu selección está en el carrito.</p>
+        </div>
+    </div>
+
+    <!-- Sidebar Carrito -->
+    <div id="cartSidebar" class="fixed inset-y-0 right-0 w-full md:w-96 bg-[#121212] z-[80] transform translate-x-full transition-transform duration-300 shadow-2xl border-l border-blue-900/30 flex flex-col">
+        <div class="p-6 border-b border-white/10 flex justify-between items-center bg-black/50">
+            <h2 class="font-display font-bold text-xl text-white">Tu <span class="text-blue-400">Alijo</span></h2>
+            <button onclick="toggleCart()" class="text-gray-400 hover:text-white transition"><i class="fa-solid fa-xmark text-2xl"></i></button>
+        </div>
+        
+        <div id="cartItemsContainer" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
+        
+        <!-- Footer del Carrito con Puntos -->
+        <div class="p-6 bg-black/80 border-t border-white/10">
+            
+            <!-- SECCIÓN DE PUNTOS EN EL CARRITO -->
+            <div id="loyaltyStatus" class="mb-6 bg-blue-900/10 border border-blue-900/30 rounded-lg p-3">
+                <!-- Se llena con JS -->
+            </div>
+
+            <div class="flex justify-between items-center mb-4 text-lg font-bold text-white">
+                <span>Total Estimado:</span>
+                <span id="cartTotal" class="text-blue-300">$0 MXN</span>
+            </div>
+            
+            <!-- BOTÓN DE INSTAGRAM -->
+            <button onclick="checkoutInstagram()" class="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 hover:brightness-110 text-white font-bold py-4 rounded-xl transition flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(236,72,153,0.3)]">
+                <i class="fa-brands fa-instagram text-xl"></i> Completar en Instagram
+            </button>
+        </div>
+    </div>
+    <div id="cartOverlay" onclick="toggleCart()" class="fixed inset-0 bg-black/60 z-[70] hidden backdrop-blur-sm transition-opacity"></div>
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-50 glass-panel border-b border-white/10 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex-shrink-0 cursor-pointer flex items-center gap-3">
+                    <img src="https://res.cloudinary.com/delkpdoic/image/upload/v1762789605/fondotransp_wrfhoe.png" alt="Nebula Vapes" class="h-10 w-auto object-contain" onerror="this.style.display='none'">
+                    <h1 class="font-display text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-900 to-gray-300 text-glow">NEBULA<span class="text-white text-sm ml-1 font-light tracking-widest">VAPES</span></h1>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="#hero" class="hover:text-blue-400 transition px-3 py-2 text-sm font-medium">Inicio</a>
+                        <a href="#products" class="hover:text-blue-400 transition px-3 py-2 text-sm font-medium">Catálogo</a>
+                        <a href="#mystery" class="hover:text-blue-400 transition px-3 py-2 text-sm font-medium text-blue-300">Mystery Box</a>
+                        <a href="#loyalty" class="transition px-3 py-2 text-sm font-medium metallic-dark hover:opacity-90">Loyalty</a>
+                    </div>
+                </div>
+                <div class="flex items-center gap-6">
+                    <a onclick="toggleCart()" class="relative text-gray-300 hover:text-white transition cursor-pointer">
+                        <i class="fa-solid fa-cart-shopping text-xl"></i>
+                        <span id="cartBadge" class="absolute -top-2 -right-2 bg-blue-900 text-[10px] w-4 h-4 flex items-center justify-center rounded-full opacity-0 transition">0</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section id="hero" class="relative min-h-screen flex items-center justify-center overflow-hidden z-10">
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-black/60 to-black z-0"></div>
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center pt-20">
+            <div class="w-full md:w-1/2 text-center md:text-left" data-aos="fade-right">
+                <span class="inline-block py-1 px-3 rounded-full bg-blue-900/20 border border-blue-900/30 text-blue-300 text-xs font-semibold tracking-wider mb-6">La mejor calidad y sabores</span>
+                <h1 class="text-5xl md:text-7xl font-display font-black text-white mb-6 leading-tight">Nebula<br><span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-900 via-blue-700 to-gray-300 text-glow">vapes</span></h1>
+                <p class="text-lg text-gray-300 mb-8 max-w-lg mx-auto md:mx-0 font-light leading-relaxed">The smoke from another universe.</p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                    <a href="#products" class="btn-neon text-white font-bold py-4 px-10 rounded-full text-lg tracking-wide uppercase shadow-lg">Explorar Colección</a>
+                </div>
+            </div>
+            <div class="w-full md:w-1/2 flex justify-center mt-12 md:mt-0 relative" data-aos="fade-left">
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-blue-900 rounded-full blur-[120px] opacity-15 animate-pulse"></div>
+                <img src="https://res.cloudinary.com/delkpdoic/image/upload/v1762789605/fondotransp_wrfhoe.png" class="animate-float relative z-10 drop-shadow-2xl rounded-2xl border border-white/10" style="max-height: 550px; mask-image: linear-gradient(to bottom, black 85%, transparent 100%);">
+            </div>
+        </div>
+    </section>
+
+    <!-- CATÁLOGO DINÁMICO -->
+    <section id="products" class="py-24 relative z-10 bg-nebula-dark overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h2 id="sectionTitle" class="text-3xl md:text-5xl font-display font-bold text-white mb-4">Selecciona tu <span class="text-blue-400">Marca</span></h2>
+                <p class="text-gray-400">Las mejores marcas del mercado en un solo lugar.</p>
+            </div>
+
+            <!-- VISTA DE MARCAS -->
+            <div id="brandsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mt-12">
+                <!-- WAKA -->
+                <div onclick="showBrand('waka')" class="group cursor-pointer glass-panel p-6 pt-12 rounded-2xl glass-card-hover transition duration-300 text-center relative mt-12">
+                    <div class="absolute -top-16 left-1/2 transform -translate-x-1/2 w-32 h-32 transition duration-500 group-hover:-translate-y-4">
+                        <img src="https://nimbusmx.com/cdn/shop/files/Waka15k.webp?v=1730955334" class="w-full h-full object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]">
+                    </div>
+                    <h3 class="text-2xl font-display font-bold text-white mt-8 relative z-10">WAKA</h3>
+                    <p class="text-gray-400 text-sm mt-2">15k hits.</p>
+                    <div class="mt-6 inline-flex items-center text-blue-300 text-sm font-bold border-b border-blue-500/50 pb-1 group-hover:text-white transition">Ver Sabores <i class="fa-solid fa-arrow-right ml-2"></i></div>
+                </div>
+
+                <!-- FASTA -->
+                <div onclick="showBrand('fasta')" class="group cursor-pointer glass-panel p-6 pt-12 rounded-2xl glass-card-hover transition duration-300 text-center relative mt-12">
+                     <div class="absolute -top-16 left-1/2 transform -translate-x-1/2 w-32 h-32 transition duration-500 group-hover:-translate-y-4">
+                        <img src="https://vapematemx.com/cdn/shop/files/Fasta.png?v=1743549728" class="w-full h-full object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]">
+                    </div>
+                    <h3 class="text-2xl font-display font-bold text-white mt-8 relative z-10">FASTA</h3>
+                    <p class="text-gray-400 text-sm mt-2">35k hits.</p>
+                    <div class="mt-6 inline-flex items-center text-red-300 text-sm font-bold border-b border-red-500/50 pb-1 group-hover:text-white transition">Ver Sabores <i class="fa-solid fa-arrow-right ml-2"></i></div>
+                </div>
+
+                <!-- RODMAN -->
+                <div onclick="showBrand('rodman')" class="group cursor-pointer glass-panel p-6 pt-12 rounded-2xl glass-card-hover transition duration-300 text-center relative mt-12">
+                     <div class="absolute -top-16 left-1/2 transform -translate-x-1/2 w-32 h-32 transition duration-500 group-hover:-translate-y-4">
+                        <img src="https://lavaperia.com/cdn/shop/files/Blue_razz_ice.webp?v=1759789400" class="w-full h-full object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]">
+                    </div>
+                    <h3 class="text-2xl font-display font-bold text-white mt-8 relative z-10">RODMAN</h3>
+                    <p class="text-gray-400 text-sm mt-2">9K hits.</p>
+                    <div class="mt-6 inline-flex items-center text-green-300 text-sm font-bold border-b border-green-500/50 pb-1 group-hover:text-white transition">Ver Sabores <i class="fa-solid fa-arrow-right ml-2"></i></div>
+                </div>
+
+                <!-- ELUX -->
+                <div onclick="showBrand('elux')" class="group cursor-pointer glass-panel p-6 pt-12 rounded-2xl glass-card-hover transition duration-300 text-center relative mt-12">
+                     <div class="absolute -top-16 left-1/2 transform -translate-x-1/2 w-32 h-32 transition duration-500 group-hover:-translate-y-4">
+                        <img src="https://vapematemx.com/cdn/shop/files/elux18000tesla.png?v=1740182401" class="w-full h-full object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]">
+                    </div>
+                    <h3 class="text-2xl font-display font-bold text-white mt-8 relative z-10">ELUX</h3>
+                    <p class="text-gray-400 text-sm mt-2">18k hits.</p>
+                    <div class="mt-6 inline-flex items-center text-purple-300 text-sm font-bold border-b border-purple-500/50 pb-1 group-hover:text-white transition">Ver Sabores <i class="fa-solid fa-arrow-right ml-2"></i></div>
+                </div>
+            </div>
+
+            <!-- VISTA DE SABORES (CARRUSEL) -->
+            <div id="flavorsContainer" class="hidden fade-in relative">
+                <div class="flex justify-between items-center mb-8">
+                    <button onclick="showCategories()" class="text-gray-400 hover:text-white flex items-center gap-2 transition px-4 py-2 rounded-lg hover:bg-white/5">
+                        <i class="fa-solid fa-arrow-left"></i> Volver a Marcas
+                    </button>
+                    <div class="flex gap-4">
+                        <button onclick="scrollFlavors(-1)" class="w-10 h-10 rounded-full bg-white/5 hover:bg-blue-900 border border-white/10 flex items-center justify-center text-white transition"><i class="fa-solid fa-chevron-left"></i></button>
+                        <button onclick="scrollFlavors(1)" class="w-10 h-10 rounded-full bg-white/5 hover:bg-blue-900 border border-white/10 flex items-center justify-center text-white transition"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div id="flavorsScroll" class="flex gap-6 overflow-x-auto snap-x scrollbar-hide py-4 px-2">
+                    <!-- JS llenará esto -->
+                </div>
+                <div class="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-nebula-dark to-transparent pointer-events-none z-10 hidden md:block"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mystery Box -->
+    <section id="mystery" class="py-24 relative overflow-hidden z-10">
+        <div class="absolute inset-0 bg-gradient-to-r from-[#0b0f14] via-black to-black z-0"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="glass-panel rounded-3xl p-8 md:p-12 border border-blue-900/40 flex flex-col md:flex-row items-center gap-12">
+                <div class="w-full md:w-1/2 flex flex-col items-center" data-aos="zoom-in">
+                    <div class="relative w-64 h-64 md:w-80 md:h-80 group cursor-pointer">
+                        <div class="absolute inset-0 bg-blue-900 rounded-full blur-[60px] opacity-20 group-hover:opacity-40 transition duration-500 animate-pulse"></div>
+                        <img src="https://res.cloudinary.com/delkpdoic/image/upload/v1764556878/misteryboxnebula_c66mlj.png" class="relative z-10 w-full h-full object-contain drop-shadow-2xl transform group-hover:scale-105 transition duration-500">
+                    </div>
+                    <div class="text-center mt-6">
+                        <h3 class="text-3xl font-display font-bold text-white">$300 <span class="text-sm font-light text-gray-400">MXN</span></h3>
+                    </div>
+                </div>
+                <div class="w-full md:w-1/2" data-aos="fade-left">
+                    <h2 class="text-3xl md:text-4xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-900 to-gray-300 mb-4">Nebula Mystery Box</h2>
+                    <p class="text-gray-300 text-lg mb-8">¿Te atreves a probar suerte? Vapes premium sorpresa donde solo tu sales ganando.</p>
+                    
+                    <div class="bg-black/40 rounded-xl overflow-hidden mb-8 border border-blue-900/30">
+                        <table class="w-full text-left text-sm text-gray-400">
+                            <thead class="bg-blue-900/20 text-blue-100 font-display">
+                                <tr><th class="p-4">Dispositivo</th><th class="p-4 text-right">Probabilidad</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-blue-900/20">
+                                <tr class="bg-white/5"><td class="p-4 font-semibold metallic-dark"><i class="fa-solid fa-crown mr-2"></i>Combo Ultra (rodman + elux)</td><td class="p-4 text-right font-bold metallic-dark">1%</td></tr>
+                                <tr><td class="p-4">Waka/Fasta</td><td class="p-4 text-right text-gray-500">4%</td></tr>
+                                <tr><td class="p-4">Elux</td><td class="p-4 text-right text-white">20%</td></tr>
+                                <tr><td class="p-4">Rodman Special Edition</td><td class="p-4 text-right text-blue-300">30%</td></tr>
+                                <tr><td class="p-4"><i class="fa-solid text-green-100 mr-2"></i>Rodman</td><td class="p-4 text-right text-green-400 font-bold">45%</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <button onclick="addToCart('Nebula Mystery Box', 300, 'https://res.cloudinary.com/delkpdoic/image/upload/v1764556878/misteryboxnebula_c66mlj.png')" class="w-full btn-neon py-4 rounded-xl font-bold text-white text-lg hover:brightness-105 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-box-open"></i> Ordenar Mystery Box
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Nebula Loyalty (IMAGEN PERSONALIZADA) -->
+    <section id="loyalty" class="py-24 bg-[#0a0a0a] relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row-reverse items-center gap-12">
+                <!-- Tarjeta Visual PERSONALIZADA -->
+                <div class="w-full md:w-1/2" data-aos="flip-right">
+                    <div class="relative w-full max-w-md mx-auto aspect-video rounded-2xl overflow-hidden shadow-2xl group hover:rotate-1 transition duration-500 transform hover:scale-105 border border-white/10">
+                        <!-- AQUÍ PONES LA URL DE TU IMAGEN -->
+                        <img src="https://res.cloudinary.com/delkpdoic/image/upload/v1764560595/nebulaloyalty_l74x3y.png" class="w-full h-full object-cover">
+                        
+                        <!-- Efecto de brillo encima de tu imagen -->
+                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000"></div>
+                    </div>
+                </div>
+
+                <!-- Texto Beneficios -->
+                <div class="w-full md:w-1/2" data-aos="fade-right">
+                    <h2 class="text-3xl font-display font-bold text-white mb-6">Nebula <span class="metallic-dark">Loyalty</span></h2>
+                    <p class="text-gray-400 mb-8">Obtén recompensas en cada compra.</p>
+                    
+                    <ul class="space-y-6 mb-8">
+                        <li class="flex items-start text-gray-300">
+                            <img src="https://res.cloudinary.com/delkpdoic/image/upload/v1762789605/fondotransp_wrfhoe.png" class="w-8 h-8 object-contain mr-4 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]">
+                            <div>
+                                <span class="block text-white font-bold text-lg">1 Vape = 1 Punto Nebula</span>
+                                <span class="text-sm text-gray-500">Acumula puntos con cada dispositivo que compres.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start text-gray-300">
+                            <div class="w-8 h-8 flex items-center justify-center mr-4 text-blue-300 text-xl"><i class="fa-solid fa-gift"></i></div>
+                            <div>
+                                <span class="block text-white font-bold text-lg">5 Puntos = Premio Sorpresa</span>
+                                <span class="text-sm text-gray-500">Al completar 5 compras, recibes un regalo exclusivo.</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/10 bg-[#020202] pt-16 pb-8 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center md:text-left mb-8">
+                <h2 class="font-display text-2xl font-bold text-white mb-4">NEBULA</h2>
+                <p class="text-gray-500 text-sm">Explorando nuevos horizontes de sabor.</p>
+            </div>
+            <div class="border-t border-white/5 pt-8 text-center flex flex-col items-center">
+                <span class="inline-block bg-blue-900/10 text-blue-300 text-xs px-2 py-1 rounded border border-blue-900/30 font-bold mb-4">18+ ADULTS ONLY</span>
+                <p class="text-gray-500 text-xs">&copy; 2024 Nebula Vapes.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Logic Script -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 800, once: true, offset: 50 });
+
+        // --- DATOS DE PRODUCTOS ---
+        const allProducts = {
+            'waka': [
+                { name: 'Kiwi Dragon Berry', price: 350, img: 'https://res.cloudinary.com/delkpdoic/image/upload/v1764558450/20_fjcmsl.png', desc: 'Pitaya dulce y acidita', dulce: 70, hielo: 10 },
+                { name: 'Watermelon Kiwi', price: 350, img: 'https://res.cloudinary.com/delkpdoic/image/upload/v1764558463/21_qe0sya.png', desc: 'Sandia y kiwi perfectamente equilibrados', dulce: 65, hielo: 5 },
+                { name: 'Peach Blue Rasperry', price: 350, img: 'https://res.cloudinary.com/delkpdoic/image/upload/v1764558483/23_fpw8sm.png', desc: 'El favorito de muchos moras azules con durazno', dulce: 80, hielo: 10 },
+                { name: 'Peach Mango Watermelon', price: 350, img: 'https://res.cloudinary.com/delkpdoic/image/upload/v1764558464/22_obn41g.png', desc: 'Sandía y mango tropical', dulce: 85, hielo: 20 },
+                { name: 'Strawberry burst', price: 350, img: 'https://res.cloudinary.com/delkpdoic/image/upload/v1764558483/24_j9jrn3.png', desc: 'Golpes de fresas', dulce: 75, hielo: 10 },
+            ],
+            'fasta': [
+                { name: 'Grape Soda', price: 350, img: 'https://res.cloudinary.com/delkpdoic/image/upload/v1764559180/22_pqtqqu.png', desc: 'Tu refresco favorito de uva', dulce: 70, hielo: 70 },
+                { name: 'Fcking Fab Soda', price: 350, img: 'https://res.cloudinary.com/delkpdoic/image/upload/v1764559179/20_lxepeo.png', desc: 'Siente las burbujas de la soda', dulce: 85, hielo: 60 },
+                { name: 'Frozen Sour Apple', price: 350, img: 'https://res.cloudinary.com/delkpdoic/image/upload/v1764559179/21_j8pftz.png', desc: 'Manzana congelada', dulce: 95, hielo: 65 },
+                { name: 'Frozen White Grape', price: 350, img: 'https://res.cloudinary.com/delkpdoic/image/upload/v1764559185/23_wh16zk.png', desc: 'Uva verde congelada', dulce: 85, hielo: 65 },
+                
+            ],
+            'rodman': [
+                { name: 'Allstar', price: 250, img: 'https://res.cloudinary.com/delkpdoic/image/upload/v1764561528/20_me5xdv.png', desc: 'Blue razz', dulce: 80, hielo: 0 },
+                { name: 'Cool Mint', price: 250, img: 'https://res.cloudinary.com/delkpdoic/image/upload/v1764561529/21_d1l7w9.png', desc: 'Sabor a menta equilibrado', dulce: 40, hielo: 40 },
+                { name: 'Rodzilla', price: 250, img: 'https://res.cloudinary.com/delkpdoic/image/upload/v1764561534/22_qddoms.png', desc: 'Dulces de fresa picositos', dulce: 70, hielo: 0 },
+                { name: 'The Worm', price: 250, img: 'https://res.cloudinary.com/delkpdoic/image/upload/v1764561536/23_bfinh9.png', desc: 'Gomitas de gusanito deliciosas', dulce: 80, hielo: 0 },
+                { name: 'Rodman Blast', price: 250, img: 'https://res.cloudinary.com/delkpdoic/image/upload/v1764561594/rodmanedicion_ck3xff.png', desc: 'El sabor del Arcoiris en tu paladar', dulce: 95, hielo: 0 },
+                { name: 'The Menace', price: 250, img: 'https://res.cloudinary.com/delkpdoic/image/upload/v1764561537/24_ock7bt.png', desc: 'La pasion del sabor de la fresa', dulce: 70, hielo: 0 }
+            ],
+            'elux': [
+                { name: 'Lost Cherry', price: 300, img: 'https://res.cloudinary.com/delkpdoic/image/upload/v1764559605/20_ml8tdv.png', desc: 'Sabor delicioso a cereza', dulce: 75, hielo: 0 },
+                { name: 'Strawlands', price: 300, img: 'https://res.cloudinary.com/delkpdoic/image/upload/v1764559605/21_vciux0.png', desc: 'Quien dijo paraiso de fresas?', dulce: 85, hielo: 0 },
+                { name: 'Blueberry Watermelon', price: 300, img: 'https://res.cloudinary.com/delkpdoic/image/upload/v1764559606/24_qbbixg.png', desc: 'El signature no podia faltar', dulce: 75, hielo: 0 }
+            ]
+        };
+
+        // --- LÓGICA CATÁLOGO & CARRUSEL ---
+        function showBrand(brandKey) {
+            const brandsGrid = document.getElementById('brandsGrid');
+            const flavorsContainer = document.getElementById('flavorsContainer');
+            const flavorsScroll = document.getElementById('flavorsScroll');
+            const title = document.getElementById('sectionTitle');
+
+            brandsGrid.classList.add('hidden');
+            flavorsContainer.classList.remove('hidden');
+            title.innerHTML = `Sabores <span class="text-blue-400 capitalize">${brandKey}</span>`;
+
+            const products = allProducts[brandKey];
+            flavorsScroll.innerHTML = ''; 
+
+            if(products) {
+                const goldNames = ['Rodzilla', 'The Worm', 'Rodman Blast', 'The Menace'];
+                products.forEach(p => {
+                    const nameClass = goldNames.includes(p.name) ? 'metallic-dark' : 'text-white';
+                    const priceClass = goldNames.includes(p.name) ? 'metallic-dark' : 'text-white';
+                    const html = `
+                    <div class="min-w-[280px] md:min-w-[320px] snap-center group relative glass-panel rounded-2xl p-6 hover:border-blue-900/40 transition duration-300">
+                        <div class="h-48 bg-gray-900/40 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
+                            <img src="${p.img}" class="h-full object-cover opacity-80 group-hover:scale-110 transition duration-500">
+                        </div>
+                        <h3 class="text-xl font-bold font-display ${nameClass}">${p.name}</h3>
+                        <p class="text-gray-400 text-xs mb-4">${p.desc}</p>
+                        <div class="space-y-2 mb-6 border-t border-white/5 pt-4">
+                            <div class="flex items-center text-[10px] text-gray-400 uppercase tracking-wider"><span class="w-16">Dulzor</span><div class="flex-1 h-1 bg-gray-700 rounded-full ml-2"><div class="h-full bg-blue-900 w-[${p.dulce}%] rounded-full"></div></div></div>
+                            <div class="flex items-center text-[10px] text-gray-400 uppercase tracking-wider"><span class="w-16">Hielo</span><div class="flex-1 h-1 bg-gray-700 rounded-full ml-2"><div class="h-full bg-gray-400 w-[${p.hielo}%] rounded-full"></div></div></div>
+                        </div>
+                        <div class="flex items-center justify-between mt-auto">
+                            <span class="text-2xl font-bold ${priceClass}">$${p.price}</span>
+                            <button onclick="addToCart('${p.name}', ${p.price}, '${p.img}')" class="bg-blue-900/20 hover:bg-blue-900 border border-blue-900/40 text-white px-4 py-2 rounded-lg transition text-sm flex items-center gap-2">Añadir <i class="fa-solid fa-plus text-xs"></i></button>
+                        </div>
+                    </div>
+                    `;
+                    flavorsScroll.innerHTML += html;
+                });
+            }
+        }
+
+        function showCategories() {
+            document.getElementById('brandsGrid').classList.remove('hidden');
+            document.getElementById('flavorsContainer').classList.add('hidden');
+            document.getElementById('sectionTitle').innerHTML = 'Selecciona tu <span class="text-blue-400">Marca</span>';
+        }
+
+        function scrollFlavors(direction) {
+            const container = document.getElementById('flavorsScroll');
+            const scrollAmount = 340; 
+            container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+        }
+
+        // --- Lógica Carrito ---
+        let cart = [];
+        
+        function addToCart(name, price, image) {
+            const existingItem = cart.find(item => item.name === name);
+            if (existingItem) { existingItem.quantity += 1; } 
+            else { cart.push({ name: name, price: price, image: image, quantity: 1 }); }
+            updateCartUI(); showToast(name); openCart();
+        }
+        function removeFromCart(name) { cart = cart.filter(item => item.name !== name); updateCartUI(); }
+        function changeQuantity(name, change) {
+            const item = cart.find(item => item.name === name);
+            if (item) { item.quantity += change; if (item.quantity <= 0) removeFromCart(name); }
+            updateCartUI();
+        }
+        
+        function updateCartUI() {
+            const container = document.getElementById('cartItemsContainer');
+            const totalElement = document.getElementById('cartTotal');
+            const badge = document.getElementById('cartBadge');
+            const loyaltyStatus = document.getElementById('loyaltyStatus');
+            
+            container.innerHTML = '';
+            let total = 0; 
+            let totalItems = 0;
+
+            if (cart.length === 0) {
+                container.innerHTML = `<div class="text-center text-gray-500 mt-10"><i class="fa-solid fa-basket-shopping text-4xl mb-4 opacity-30"></i><p>Tu carrito está vacío.</p></div>`;
+                badge.style.opacity = '0';
+                loyaltyStatus.innerHTML = '';
+            } else {
+                cart.forEach(item => {
+                    total += item.price * item.quantity;
+                    totalItems += item.quantity;
+                    container.innerHTML += `
+                        <div class="flex items-center gap-4 bg-white/5 p-3 rounded-xl border border-white/5">
+                            <img src="${item.image}" class="w-16 h-16 object-cover rounded-lg">
+                            <div class="flex-1"><h4 class="text-white font-bold text-sm">${item.name}</h4><p class="text-blue-300 text-xs">$${item.price}</p></div>
+                            <div class="flex items-center gap-3 bg-black rounded-lg px-2 py-1">
+                                <button onclick="changeQuantity('${item.name}', -1)" class="text-gray-400 hover:text-white">-</button>
+                                <span class="text-white text-xs font-mono">${item.quantity}</span>
+                                <button onclick="changeQuantity('${item.name}', 1)" class="text-gray-400 hover:text-white">+</button>
+                            </div>
+                        </div>`;
+                });
+                badge.textContent = totalItems; badge.style.opacity = '1';
+                
+                // --- CÁLCULO DE PUNTOS VISUAL ---
+                const pointsNeeded = 5;
+                const pointsCurrent = totalItems;
+                const remaining = Math.max(0, pointsNeeded - pointsCurrent);
+                const percent = Math.min((pointsCurrent / pointsNeeded) * 100, 100);
+                
+                if(pointsCurrent >= pointsNeeded) {
+                    loyaltyStatus.innerHTML = `
+                        <div class="flex items-center gap-3">
+                             <div class="w-10 h-10 bg-blue-900/20 rounded-full flex items-center justify-center text-blue-300 animate-pulse"><i class="fa-solid fa-gift"></i></div>
+                             <div>
+                                <p class="text-white font-bold text-sm">¡Premio Desbloqueado!</p>
+                                <p class="text-gray-400 text-xs">Tienes ${pointsCurrent} Puntos Nebula.</p>
+                             </div>
+                        </div>
+                    `;
+                } else {
+                    loyaltyStatus.innerHTML = `
+                        <div class="flex justify-between text-xs text-gray-400 mb-1">
+                            <span>Tienes <span class="text-blue-400 font-bold">${pointsCurrent} Puntos</span></span>
+                            <span>Meta: 5</span>
+                        </div>
+                        <div class="h-2 bg-black rounded-full overflow-hidden border border-white/10 mb-2">
+                            <div class="h-full bg-blue-500 transition-all duration-500" style="width: ${percent}%"></div>
+                        </div>
+                        <p class="text-center text-xs text-white">¡Te faltan <span class="text-blue-400 font-bold">${remaining}</span> para tu regalo!</p>
+                    `;
+                }
+            }
+            totalElement.textContent = `$${total.toLocaleString()} MXN`;
+        }
+        
+        function toggleCart() {
+            const sidebar = document.getElementById('cartSidebar');
+            if (sidebar.classList.contains('translate-x-full')) openCart(); else closeCart();
+        }
+        function openCart() { document.getElementById('cartSidebar').classList.remove('translate-x-full'); document.getElementById('cartOverlay').classList.remove('hidden'); }
+        function closeCart() { document.getElementById('cartSidebar').classList.add('translate-x-full'); document.getElementById('cartOverlay').classList.add('hidden'); }
+        function showToast(productName) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').textContent = `${productName} añadido.`;
+            toast.classList.remove('translate-y-40');
+            setTimeout(() => toast.classList.add('translate-y-40'), 3000);
+        }
+        function checkoutInstagram() {
+            if (cart.length === 0) return alert("El carrito está vacío.");
+            
+            let totalItems = 0;
+            cart.forEach(item => totalItems += item.quantity);
+            
+            let message = "¡Hola Nebula Vapes! 🚀 Quiero ordenar:\n\n";
+            let total = 0;
+            cart.forEach(item => { message += `- ${item.quantity}x ${item.name}\n`; total += item.price * item.quantity; });
+            
+            message += `\n*TOTAL: $${total} MXN*`;
+            message += `\n\n💎 *Puntos Nebula en esta orden:* ${totalItems}`;
+            if(totalItems >= 5) message += "\n🎁 ¡He desbloqueado mi premio sorpresa!";
+            
+            // Copiar al portapapeles y redirigir
+            navigator.clipboard.writeText(message).then(() => {
+                alert("✅ ¡Pedido copiado al portapapeles!\n\nTe redirigiremos a Instagram. Solo pega el mensaje en el chat.");
+                window.open("https://www.instagram.com/nebula_vpss/", "_blank");
+            }).catch(err => {
+                console.error('Error al copiar: ', err);
+                window.open("https://www.instagram.com/nebula_vpss/", "_blank");
+            });
+        }
+
+        // --- Visuales ---
+        function closeAgeModal() { document.getElementById('ageModal').style.display = 'none'; }
+        
+        const canvas = document.getElementById('starsCanvas');
+        const ctx = canvas.getContext('2d');
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        resizeCanvas(); window.addEventListener('resize', resizeCanvas);
+        let stars = []; for(let i=0; i<100; i++) stars.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, radius:Math.random()*1.5, vx:(Math.random()-.5)*.5, vy:(Math.random()-.5)*.5, alpha:Math.random()});
+        function animateStars() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            stars.forEach(s => { ctx.beginPath(); ctx.arc(s.x, s.y, s.radius, 0, Math.PI*2); ctx.fillStyle=`rgba(255,255,255,${s.alpha})`; ctx.fill(); s.x+=s.vx; s.y+=s.vy; if(s.x<0)s.x=canvas.width; if(s.x>canvas.width)s.x=0; if(s.y<0)s.y=canvas.height; if(s.y>canvas.height)s.y=0; });
+            requestAnimationFrame(animateStars);
+        }
+        animateStars();
+    </script>
+</body>
+</html>
